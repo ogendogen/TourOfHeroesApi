@@ -6,7 +6,6 @@ namespace TourOfHeroesApi;
 
 public class Program
 {
-    public static DbHandler DbHandler { get; set; } = new();
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -32,36 +31,25 @@ public class Program
 
         app.UseAuthorization();
 
-        var summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        app.MapGet("/heroes", (HttpContext httpContext, IDbHandler dbHandler) => dbHandler.GetAllHeroes())
+            .WithName("GetHeroes")
+            .WithOpenApi();
 
-        app.MapGet("/weatherforecast", (HttpContext httpContext) =>
-        {
-            var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                {
-                    Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    TemperatureC = Random.Shared.Next(-20, 55),
-                    Summary = summaries[Random.Shared.Next(summaries.Length)]
-                })
-                .ToArray();
-            return forecast;
-        })
-        .WithName("GetWeatherForecast")
-        .WithOpenApi();
+        app.MapGet("/heroes/{id}", (int id, IDbHandler dbHandler) => dbHandler.GetHeroById(id))
+            .WithName("GetHero")
+            .WithOpenApi();
 
-        app.MapGet("/heroes", (HttpContext httpContext, IDbHandler dbHandler) =>
-        {
-            return dbHandler.GetAllHeroes();
-        })
-        .WithName("GetHeroes")
-        .WithOpenApi();
+        app.MapPost("/heroes", (HeroNoId hero, IDbHandler dbHandler) => dbHandler.AddHero(new Hero() { Id = 0, Name = hero.Name}))
+            .WithName("AddHero")
+            .WithOpenApi();
 
-        app.MapGet("/heroes/{id}", (int id, IDbHandler dbHandler) => dbHandler.GetHeroById(id));
+        app.MapPut("/heroes", (Hero hero, IDbHandler dbHandler) => dbHandler.UpdateHero(hero))
+            .WithName("UpdateHero")
+            .WithOpenApi();
 
-        app.MapPost("/heroes", (Hero hero, IDbHandler dbHandler) =>  { return dbHandler.AddHero(hero); });
+        app.MapDelete("/heroes/{id}", (int id, IDbHandler dbHandler) => dbHandler.DeleteHero(id))
+            .WithName("DeleteHero")
+            .WithOpenApi();
 
         app.Run();
     }
