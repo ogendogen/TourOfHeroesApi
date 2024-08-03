@@ -18,6 +18,18 @@ public class Program
         builder.Services.AddSwaggerGen();
         builder.Services.AddScoped<IDbHandler, DbHandler>();
 
+        var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy(name: MyAllowSpecificOrigins,
+                policy =>
+                {
+                    policy.WithOrigins("https://localhost:4200", "http://localhost:4200")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+                });
+        });
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -26,6 +38,7 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+        app.UseCors(MyAllowSpecificOrigins);
 
         app.UseHttpsRedirection();
 
