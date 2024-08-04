@@ -44,25 +44,30 @@ public class Program
 
         app.UseAuthorization();
 
-        app.MapGet("/heroes", (HttpContext httpContext, IDbHandler dbHandler) => dbHandler.GetAllHeroes())
-            .WithName("GetHeroes")
-            .WithOpenApi();
+        app.MapGet("/heroes", async (HttpContext httpContext, IDbHandler dbHandler) =>
+            await dbHandler.GetAllHeroes())
+                .WithName("GetHeroes")
+                .WithOpenApi();
 
-        app.MapGet("/heroes/{id}", (int id, IDbHandler dbHandler) => dbHandler.GetHeroById(id))
-            .WithName("GetHero")
-            .WithOpenApi();
+        app.MapGet("/heroes/{id}", async (int id, IDbHandler dbHandler) =>
+            await dbHandler.GetHeroById(id) is Hero hero ? Results.Ok(hero) : Results.BadRequest(Responses.HeroNotFound(id)))
+                .WithName("GetHero")
+                .WithOpenApi();
 
-        app.MapPost("/heroes", (HeroNoId hero, IDbHandler dbHandler) => dbHandler.AddHero(new Hero() { Id = 0, Name = hero.Name}))
-            .WithName("AddHero")
-            .WithOpenApi();
+        app.MapPost("/heroes", async (HeroNoId hero, IDbHandler dbHandler) =>
+            await dbHandler.AddHero(new Hero() { Id = 0, Name = hero.Name}) is bool result ? Results.Ok(result) : Results.BadRequest(Responses.HeroGenericError))
+                .WithName("AddHero")
+                .WithOpenApi();
 
-        app.MapPut("/heroes", (Hero hero, IDbHandler dbHandler) => dbHandler.UpdateHero(hero))
-            .WithName("UpdateHero")
-            .WithOpenApi();
+        app.MapPut("/heroes", async (Hero hero, IDbHandler dbHandler) =>
+            await dbHandler.UpdateHero(hero))
+                .WithName("UpdateHero")
+                .WithOpenApi();
 
-        app.MapDelete("/heroes/{id}", (int id, IDbHandler dbHandler) => dbHandler.DeleteHero(id))
-            .WithName("DeleteHero")
-            .WithOpenApi();
+        app.MapDelete("/heroes/{id}", async  (int id, IDbHandler dbHandler) =>
+            await dbHandler.DeleteHero(id))
+                .WithName("DeleteHero")
+                .WithOpenApi();
 
         app.Run();
     }
